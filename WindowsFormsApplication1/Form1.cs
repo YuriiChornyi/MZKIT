@@ -33,7 +33,7 @@ namespace WindowsFormsApplication1
             {
                 comboBox1.Items.Add(device.Name);
             }
-            comboBox1.SelectedIndex = 0;
+            //comboBox1.SelectedIndex = 0;
             FinalFrame = new VideoCaptureDevice();
         }
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
