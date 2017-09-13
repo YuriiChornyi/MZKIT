@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using AForge.Video.DirectShow;
 using AForge.Video;
+using System.IO;
+using NAudio;
 
 
 namespace WindowsFormsApplication1
@@ -22,7 +24,7 @@ namespace WindowsFormsApplication1
         {
             InitializeComponent();
 
-           
+
         }
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -42,9 +44,9 @@ namespace WindowsFormsApplication1
 
         private void button1_Click(object sender, EventArgs e)
         {
-            
+
             FinalFrame = new VideoCaptureDevice(Device[comboBox1.SelectedIndex].MonikerString);
-            FinalFrame.NewFrame +=new NewFrameEventHandler(FinalFrame_NewFrame);
+            FinalFrame.NewFrame += new NewFrameEventHandler(FinalFrame_NewFrame);
             FinalFrame.Start();
         }
         void FinalFrame_NewFrame(object sender, NewFrameEventArgs eventArgs)
@@ -62,24 +64,33 @@ namespace WindowsFormsApplication1
             Bitmap myBitmap = new Bitmap(pictureBox1.Image);
             int width = pictureBox1.Image.Width;
             int height = pictureBox1.Image.Height;
-            string s="";
+            string s = "";
+            saveFileDialog1.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+            saveFileDialog1.FilterIndex = 2;
             for (int i = 0; i < width; i++)
             {
                 for (int j = 0; j < height; j++)
                 {
                     s += myBitmap.GetPixel(i, j).ToString();
-                    textBox1.AppendText(s);
+
                 }
             }
-            
-            
-            //saveFileDialog1.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
-            //if (saveFileDialog1.ShowDialog()==DialogResult.OK)
-            //{
-                
-            //}
+            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                using (FileStream filestream = new FileStream(saveFileDialog1.FileName, FileMode.OpenOrCreate))
+                {
+                    using (TextWriter writer = new StreamWriter(filestream))
+                    {
+                        writer.WriteLine(s);
+                    }
+                }
+            }
+
+
+
+
         }
 
-   
+
     }
 }
