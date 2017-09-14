@@ -17,8 +17,14 @@ namespace WindowsFormsApplication1
 {
     public partial class Form1 : Form
     {
-        private FilterInfoCollection Device;
+        private FilterInfoCollection VideoDevice;
         private VideoCaptureDevice FinalFrame;
+
+        private FilterInfoCollection AudioDevice;
+        private NAudio.Wave.WaveIn soundStream;
+        private NAudio.Wave.DirectSoundOut directsound;
+
+        private NAudio.Wave.WaveFileWriter fileWriter;
 
         public Form1()
         {
@@ -28,13 +34,16 @@ namespace WindowsFormsApplication1
         }
         private void Form1_Load(object sender, EventArgs e)
         {
-            Device = new FilterInfoCollection(FilterCategory.VideoInputDevice);
-            foreach (FilterInfo device in Device)
+            VideoDevice = new FilterInfoCollection(FilterCategory.VideoInputDevice);
+            foreach (FilterInfo device in VideoDevice)
             {
                 comboBox1.Items.Add(device.Name);
             }
-            //comboBox1.SelectedIndex = 0;
-            FinalFrame = new VideoCaptureDevice();
+            AudioDevice = new FilterInfoCollection(FilterCategory.AudioInputDevice);
+            foreach (FilterInfo device in AudioDevice)
+            {
+                comboBox2.Items.Add(device.Name);
+            }
         }
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -44,10 +53,10 @@ namespace WindowsFormsApplication1
 
         private void button1_Click(object sender, EventArgs e)
         {
-
-            FinalFrame = new VideoCaptureDevice(Device[comboBox1.SelectedIndex].MonikerString);
+            FinalFrame = new VideoCaptureDevice(VideoDevice[comboBox1.SelectedIndex].MonikerString);
             FinalFrame.NewFrame += new NewFrameEventHandler(FinalFrame_NewFrame);
             FinalFrame.Start();
+            button2.Enabled = true;
         }
         void FinalFrame_NewFrame(object sender, NewFrameEventArgs eventArgs)
         {
@@ -91,6 +100,49 @@ namespace WindowsFormsApplication1
 
         }
 
+        private void button5_Click(object sender, EventArgs e)
+        {
+            int devicenumber = comboBox2.SelectedIndex;
+            soundStream = new NAudio.Wave.WaveIn();
+            soundStream.DeviceNumber = devicenumber;
+            soundStream.WaveFormat = new NAudio.Wave.WaveFormat(44100, NAudio.Wave.WaveIn.GetCapabilities(devicenumber).Channels);
 
+            //NAudio.Wave.WaveInProvider waveIn = new NAudio.Wave.WaveInProvider(soundStream);
+
+            //directsound = new NAudio.Wave.DirectSoundOut();
+            //directsound.Init(waveIn);
+
+            soundStream.StartRecording();
+            button4.Enabled = true;
+            
+        }
+
+        private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            button5.Enabled = true;
+            
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            soundStream.DataAvailable +=new EventHandler<NAudio.Wave.WaveInEventArgs>(SoundStream_DataAvailable);
+            fileWriter = new NAudio.Wave.WaveFileWriter("sound.wav", soundStream.WaveFormat);
+
+            if (soundStream!=null)
+            {
+                soundStream.StopRecording();
+                soundStream.Dispose();
+                soundStream = null;
+            }
+        }
+
+        private void SoundStream_DataAvailable(object sender, NAudio.Wave.WaveInEventArgs e)
+        {
+            if (fileWriter==null)
+            {
+                return;
+            }
+            fileWriter.Write(e.Buffer, 0, e.BytesRecorded);
+        }
     }
 }
