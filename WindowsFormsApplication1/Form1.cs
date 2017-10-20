@@ -1,16 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using AForge.Video.DirectShow;
 using AForge.Video;
-
+using NAudio;
 
 namespace WindowsFormsApplication1
 {
@@ -19,6 +14,12 @@ namespace WindowsFormsApplication1
         private FilterInfoCollection Device;
         private VideoCaptureDevice FinalFrame;
 
+
+        private FilterInfoCollection AudioDevice;
+        private NAudio.Wave.WaveIn soundStream;
+        private NAudio.Wave.DirectSoundOut directsound;
+
+        private NAudio.Wave.WaveFileWriter fileWriter;
         public Form1()
         {
             InitializeComponent();
@@ -31,6 +32,11 @@ namespace WindowsFormsApplication1
             foreach (FilterInfo device in Device)
             {
                 comboBox1.Items.Add(device.Name);
+            }
+            AudioDevice = new FilterInfoCollection(FilterCategory.AudioInputDevice);
+            foreach (FilterInfo device in AudioDevice)
+            {
+                //comboBox2.Items.Add(device.Name);
             }
             FinalFrame = new VideoCaptureDevice();
         }
@@ -65,10 +71,10 @@ namespace WindowsFormsApplication1
                 await Task.Run(() => WriteinFile());
                 MessageBox.Show("Writed", "Good");
             }
-           
-            
-            
-            
+
+            button4.Visible = true;
+
+
         }
 
         private async Task WriteinFile()
@@ -83,7 +89,11 @@ namespace WindowsFormsApplication1
                     for (int i = 0; i < width; i++)
                     {
                         for (int j = 0; j < height; j++)
-                            writer.WriteLine(myBitmap.GetPixel(i, j).ToString());
+                        {
+                            writer.WriteLine(myBitmap.GetPixel(i, j).R.ToString());
+                            writer.WriteLine(myBitmap.GetPixel(i, j).G.ToString());
+                            writer.WriteLine(myBitmap.GetPixel(i, j).B.ToString());
+                        }
                     }
                    
                 }
@@ -92,6 +102,35 @@ namespace WindowsFormsApplication1
 
         }
 
+        private void button4_Click(object sender, EventArgs e)
+        {
+            Bitmap b = new Bitmap(pictureBox1.Image);
+            Color c=new Color();
+            int width = pictureBox1.Image.Width;
+            int height = pictureBox1.Image.Height;
+            OpenFileDialog o=new OpenFileDialog();
+            o.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+            if (o.ShowDialog()==DialogResult.OK)
+            {
+                using (FileStream fs = new FileStream(o.FileName, FileMode.Open))
+                {
+                    using (TextReader reader=new StreamReader(fs))
+                    {
 
+                        for (int i = 0; i < width; i++)
+                        {
+                            for (int j = 0; j < height; j++)
+                            {
+                                //c. = reader.ReadLine();
+                                //    b.SetPixel(reader.ReadLine());
+                            }
+                                
+                        }
+                        
+                        //reader.ReadAsync();
+                    }
+                }
+            }
+        }
     }
 }
