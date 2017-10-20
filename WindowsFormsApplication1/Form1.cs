@@ -11,6 +11,7 @@ namespace WindowsFormsApplication1
 {
     public partial class Form1 : Form
     {
+        OpenFileDialog o = new OpenFileDialog();
         private FilterInfoCollection Device;
         private VideoCaptureDevice FinalFrame;
 
@@ -24,7 +25,7 @@ namespace WindowsFormsApplication1
         {
             InitializeComponent();
 
-           
+
         }
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -48,9 +49,9 @@ namespace WindowsFormsApplication1
 
         private void button1_Click(object sender, EventArgs e)
         {
-            
+
             FinalFrame = new VideoCaptureDevice(Device[comboBox1.SelectedIndex].MonikerString);
-            FinalFrame.NewFrame +=new NewFrameEventHandler(FinalFrame_NewFrame);
+            FinalFrame.NewFrame += new NewFrameEventHandler(FinalFrame_NewFrame);
             FinalFrame.Start();
         }
         void FinalFrame_NewFrame(object sender, NewFrameEventArgs eventArgs)
@@ -70,6 +71,7 @@ namespace WindowsFormsApplication1
             {
                 await Task.Run(() => WriteinFile());
                 MessageBox.Show("Writed", "Good");
+               
             }
 
             button4.Visible = true;
@@ -90,47 +92,62 @@ namespace WindowsFormsApplication1
                     {
                         for (int j = 0; j < height; j++)
                         {
-                            writer.WriteLine(myBitmap.GetPixel(i, j).R.ToString());
-                            writer.WriteLine(myBitmap.GetPixel(i, j).G.ToString());
-                            writer.WriteLine(myBitmap.GetPixel(i, j).B.ToString());
+                            writer.WriteLine(Convert.ToString(myBitmap.GetPixel(i, j).R, 2).PadLeft(8, '0'));
+                            writer.WriteLine(Convert.ToString(myBitmap.GetPixel(i, j).G, 2).PadLeft(8, '0'));
+                            writer.WriteLine(Convert.ToString(myBitmap.GetPixel(i, j).B, 2).PadLeft(8, '0'));
+
+
+
+
                         }
                     }
-                   
+
                 }
             }
             return;
 
         }
 
-        private void button4_Click(object sender, EventArgs e)
+        private async void button4_Click(object sender, EventArgs e)
         {
-            Bitmap b = new Bitmap(pictureBox1.Image);
-            Color c=new Color();
+            o.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+            if (o.ShowDialog() == DialogResult.OK)
+            {
+                await Task.Run(() => Recover());
+                MessageBox.Show("Recovered", "Good");
+
+            }
+            else
+            {
+                return;
+            }
+        }
+
+        private async Task Recover()
+        {
             int width = pictureBox1.Image.Width;
             int height = pictureBox1.Image.Height;
-            OpenFileDialog o=new OpenFileDialog();
-            o.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
-            if (o.ShowDialog()==DialogResult.OK)
+            Bitmap b = new Bitmap(width, height);
+            using (FileStream fs = new FileStream(o.FileName, FileMode.Open))
             {
-                using (FileStream fs = new FileStream(o.FileName, FileMode.Open))
+                using (TextReader reader = new StreamReader(fs))
                 {
-                    using (TextReader reader=new StreamReader(fs))
-                    {
 
-                        for (int i = 0; i < width; i++)
+                    for (int i = 0; i < width; i++)
+                    {
+                        for (int j = 0; j < height; j++)
                         {
-                            for (int j = 0; j < height; j++)
-                            {
-                                //c. = reader.ReadLine();
-                                //    b.SetPixel(reader.ReadLine());
-                            }
-                                
+
+                            b.SetPixel(i, j, Color.FromArgb(Convert.ToInt32(reader.ReadLine(), 2), Convert.ToInt32(reader.ReadLine(), 2), Convert.ToInt32(reader.ReadLine(), 2)));
+                            pictureBox2.Image = b;
                         }
-                        
-                        //reader.ReadAsync();
+
                     }
+
+                    //reader.ReadAsync();
                 }
             }
         }
     }
 }
+
