@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -31,7 +32,6 @@ namespace WindowsFormsApplication1
             {
                 comboBox1.Items.Add(device.Name);
             }
-            comboBox1.SelectedIndex = 0;
             FinalFrame = new VideoCaptureDevice();
         }
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -57,29 +57,41 @@ namespace WindowsFormsApplication1
             FinalFrame.Stop();
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        private async void button3_ClickAsync(object sender, EventArgs e)
+        {
+            saveFileDialog1.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                await Task.Run(() => WriteinFile());
+                MessageBox.Show("Writed", "Good");
+            }
+           
+            
+            
+            
+        }
+
+        private async Task WriteinFile()
         {
             Bitmap myBitmap = new Bitmap(pictureBox1.Image);
             int width = pictureBox1.Image.Width;
             int height = pictureBox1.Image.Height;
-            string s="";
-            for (int i = 0; i < width; i++)
+            using (FileStream filestream = new FileStream(saveFileDialog1.FileName, FileMode.OpenOrCreate))
             {
-                for (int j = 0; j < height; j++)
+                using (TextWriter writer = new StreamWriter(filestream))
                 {
-                    s += myBitmap.GetPixel(i, j).ToString();
-                    textBox1.AppendText(s);
+                    for (int i = 0; i < width; i++)
+                    {
+                        for (int j = 0; j < height; j++)
+                            writer.WriteLine(myBitmap.GetPixel(i, j).ToString());
+                    }
+                   
                 }
             }
-            
-            
-            //saveFileDialog1.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
-            //if (saveFileDialog1.ShowDialog()==DialogResult.OK)
-            //{
-                
-            //}
+            return;
+
         }
 
-   
+
     }
 }
