@@ -42,6 +42,9 @@
             this.button6 = new System.Windows.Forms.Button();
             this.button7 = new System.Windows.Forms.Button();
             this.button8 = new System.Windows.Forms.Button();
+            this.waveViewer1 = new NAudio.Gui.WaveViewer();
+            this.button9 = new System.Windows.Forms.Button();
+            this.waveformPainter1 = new NAudio.Gui.WaveformPainter();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             this.SuspendLayout();
@@ -167,12 +170,48 @@
             this.button8.UseVisualStyleBackColor = true;
             this.button8.Click += new System.EventHandler(this.button8_Click);
             // 
+            // waveViewer1
+            // 
+            this.waveViewer1.AutoScroll = true;
+            this.waveViewer1.AutoSize = true;
+            this.waveViewer1.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.waveViewer1.ForeColor = System.Drawing.Color.Maroon;
+            this.waveViewer1.Location = new System.Drawing.Point(12, 342);
+            this.waveViewer1.Name = "waveViewer1";
+            this.waveViewer1.SamplesPerPixel = 128;
+            this.waveViewer1.Size = new System.Drawing.Size(656, 208);
+            this.waveViewer1.StartPosition = ((long)(0));
+            this.waveViewer1.TabIndex = 12;
+            this.waveViewer1.WaveStream = null;
+            // 
+            // button9
+            // 
+            this.button9.Location = new System.Drawing.Point(213, 283);
+            this.button9.Name = "button9";
+            this.button9.Size = new System.Drawing.Size(75, 23);
+            this.button9.TabIndex = 13;
+            this.button9.Text = "Visualize";
+            this.button9.UseVisualStyleBackColor = true;
+            this.button9.Click += new System.EventHandler(this.button9_Click);
+            // 
+            // waveformPainter1
+            // 
+            this.waveformPainter1.Location = new System.Drawing.Point(323, 177);
+            this.waveformPainter1.Name = "waveformPainter1";
+            this.waveformPainter1.Size = new System.Drawing.Size(345, 159);
+            this.waveformPainter1.TabIndex = 14;
+            this.waveformPainter1.Text = "waveformPainter1";
+            this.waveformPainter1.Click += new System.EventHandler(this.waveformPainter1_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ControlDarkDark;
             this.ClientSize = new System.Drawing.Size(680, 550);
+            this.Controls.Add(this.waveformPainter1);
+            this.Controls.Add(this.button9);
+            this.Controls.Add(this.waveViewer1);
             this.Controls.Add(this.button8);
             this.Controls.Add(this.button7);
             this.Controls.Add(this.button6);
@@ -191,6 +230,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -210,6 +250,9 @@
         private System.Windows.Forms.Button button6;
         private System.Windows.Forms.Button button7;
         private System.Windows.Forms.Button button8;
+        private NAudio.Gui.WaveViewer waveViewer1;
+        private System.Windows.Forms.Button button9;
+        private NAudio.Gui.WaveformPainter waveformPainter1;
     }
 }
 

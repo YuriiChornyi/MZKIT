@@ -10,9 +10,10 @@ using NAudio;
 
 namespace WindowsFormsApplication1
 {
+   
     public partial class Form1 : Form
     {
-
+        
         private FilterInfoCollection Device;
         private VideoCaptureDevice FinalFrame;
 
@@ -228,28 +229,49 @@ namespace WindowsFormsApplication1
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 butes = File.ReadAllBytes(openFileDialog1.FileName);
+                
             }
             else
             {
                 return;
             }
-            openFileDialog1.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
-            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            saveFileDialog1.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 using (FileStream filestream = new FileStream(saveFileDialog1.FileName, FileMode.OpenOrCreate))
                 {
                     using (TextWriter writer = new StreamWriter(filestream))
                     {
-                        writer.WriteLine(butes);
+                        writer.Write(butes);
+                        MessageBox.Show("Writed", "Good");
                     }
                 }
-                MessageBox.Show("Writed", "Good");
+               
 
             }
             else
             {
                 return;
             }
+
+        }
+
+        private void button9_Click(object sender, EventArgs e)
+        {
+            openFileDialog1.Filter = "Wave File(*.wav) | *.wav; ";
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                waveViewer1.SamplesPerPixel = 400;
+                waveViewer1.AutoScroll = true;
+                waveViewer1.Refresh();
+                waveViewer1.WaveStream = new NAudio.Wave.WaveFileReader(openFileDialog1.FileName);
+                waveViewer1.Refresh();
+                //waveViewer1.Show();
+            }
+        }
+
+        private void waveformPainter1_Click(object sender, EventArgs e)
+        {
 
         }
     }
