@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.IO;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using AForge.Video.DirectShow;
@@ -11,16 +12,16 @@ namespace WindowsFormsApplication1
 {
     public partial class Form1 : Form
     {
-        OpenFileDialog o = new OpenFileDialog();
+
         private FilterInfoCollection Device;
         private VideoCaptureDevice FinalFrame;
 
 
         private FilterInfoCollection AudioDevice;
-        private NAudio.Wave.WaveIn soundStream;
-        private NAudio.Wave.DirectSoundOut directsound;
+        NAudio.Wave.WaveIn sourceStream = null;
+        NAudio.Wave.DirectSoundOut waveOut = null;
+        NAudio.Wave.WaveFileWriter waveWriter = null;
 
-        private NAudio.Wave.WaveFileWriter fileWriter;
         public Form1()
         {
             InitializeComponent();
@@ -37,7 +38,7 @@ namespace WindowsFormsApplication1
             AudioDevice = new FilterInfoCollection(FilterCategory.AudioInputDevice);
             foreach (FilterInfo device in AudioDevice)
             {
-                //comboBox2.Items.Add(device.Name);
+                comboBox2.Items.Add(device.Name);
             }
             FinalFrame = new VideoCaptureDevice();
         }
@@ -61,7 +62,14 @@ namespace WindowsFormsApplication1
 
         private void button2_Click(object sender, EventArgs e)
         {
-            FinalFrame.Stop();
+            if (FinalFrame.IsRunning)
+            {
+                FinalFrame.Stop();
+            }
+            else
+            {
+                MessageBox.Show("Not recording", "Please start to record");
+            }
         }
 
         private async void button3_ClickAsync(object sender, EventArgs e)
@@ -71,7 +79,7 @@ namespace WindowsFormsApplication1
             {
                 await Task.Run(() => WriteinFile());
                 MessageBox.Show("Writed", "Good");
-               
+
             }
 
             button4.Visible = true;
@@ -110,8 +118,8 @@ namespace WindowsFormsApplication1
 
         private async void button4_Click(object sender, EventArgs e)
         {
-            o.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
-            if (o.ShowDialog() == DialogResult.OK)
+            openFileDialog1.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 await Task.Run(() => Recover());
                 MessageBox.Show("Recovered", "Good");
@@ -128,7 +136,7 @@ namespace WindowsFormsApplication1
             int width = pictureBox1.Image.Width;
             int height = pictureBox1.Image.Height;
             Bitmap b = new Bitmap(width, height);
-            using (FileStream fs = new FileStream(o.FileName, FileMode.Open))
+            using (FileStream fs = new FileStream(openFileDialog1.FileName, FileMode.Open))
             {
                 using (TextReader reader = new StreamReader(fs))
                 {
@@ -147,6 +155,102 @@ namespace WindowsFormsApplication1
                     //reader.ReadAsync();
                 }
             }
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            if (comboBox2.SelectedIndex == 0) return;
+
+            int deviceNumber = comboBox2.SelectedIndex;
+
+            sourceStream = new NAudio.Wave.WaveIn();
+            sourceStream.DeviceNumber = deviceNumber;
+            sourceStream.WaveFormat = new NAudio.Wave.WaveFormat(44100, NAudio.Wave.WaveIn.GetCapabilities(deviceNumber).Channels);
+
+            NAudio.Wave.WaveInProvider waveIn = new NAudio.Wave.WaveInProvider(sourceStream);
+
+            waveOut = new NAudio.Wave.DirectSoundOut();
+            waveOut.Init(waveIn);
+
+            sourceStream.StartRecording();
+            waveOut.Play();
+        }
+
+        private void button7_Click(object sender, EventArgs e)
+        {
+            saveFileDialog1.Filter = "Wave File (*.wav)|*.wav;";
+            if (saveFileDialog1.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+
+            int deviceNumber = comboBox2.SelectedIndex;
+
+            sourceStream = new NAudio.Wave.WaveIn();
+            sourceStream.DeviceNumber = deviceNumber;
+            sourceStream.WaveFormat = new NAudio.Wave.WaveFormat(44100, NAudio.Wave.WaveIn.GetCapabilities(deviceNumber).Channels);
+
+            sourceStream.DataAvailable += new EventHandler<NAudio.Wave.WaveInEventArgs>(sourceStream_DataAvailable);
+            waveWriter = new NAudio.Wave.WaveFileWriter(saveFileDialog1.FileName, sourceStream.WaveFormat);
+
+            sourceStream.StartRecording();
+        }
+        private void sourceStream_DataAvailable(object sender, NAudio.Wave.WaveInEventArgs e)
+        {
+            if (waveWriter == null) return;
+
+            waveWriter.WriteData(e.Buffer, 0, e.BytesRecorded);
+            waveWriter.Flush();
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            if (waveOut != null)
+            {
+                waveOut.Stop();
+                waveOut.Dispose();
+                waveOut = null;
+            }
+            if (sourceStream != null)
+            {
+                sourceStream.StopRecording();
+                sourceStream.Dispose();
+                sourceStream = null;
+            }
+            if (waveWriter != null)
+            {
+                waveWriter.Dispose();
+                waveWriter = null;
+            }
+        }
+
+        private void button8_Click(object sender, EventArgs e)
+        {
+            byte[] butes;
+            openFileDialog1.Filter = "Wave File(*.wav) | *.wav; ";
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                butes = File.ReadAllBytes(openFileDialog1.FileName);
+            }
+            else
+            {
+                return;
+            }
+            openFileDialog1.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                using (FileStream filestream = new FileStream(saveFileDialog1.FileName, FileMode.OpenOrCreate))
+                {
+                    using (TextWriter writer = new StreamWriter(filestream))
+                    {
+                        writer.WriteLine(butes);
+                    }
+                }
+                MessageBox.Show("Writed", "Good");
+
+            }
+            else
+            {
+                return;
+            }
+
         }
     }
 }
